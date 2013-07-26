@@ -1,0 +1,57 @@
+//
+//  LoginCtrlViewController.h
+//  NK
+//
+//  Created by ZhouBin Mac Book Air on 12-7-29.
+//  Copyright (c) 2012年 __MyCompanyName__. All rights reserved.
+//
+
+@protocol LoginFinishDelegate
+-(void)loginFinished:(BOOL)verified;
+@end
+
+#import <UIKit/UIKit.h>
+#import "UIViewControllerPro.h"
+typedef enum
+{
+    VT_Login    =1,
+    VT_Regist   =2,
+}ViewType;
+
+@interface LoginCtrlViewController : UIViewControllerPro<UITableViewDataSource, UITableViewDelegate>
+
+-(id)initWithViewType:(ViewType)_viewType  finishParams:(NSDictionary*)pDict;
+
+@property(nonatomic,assign,setter = setViewType:)ViewType m_viewType;
+
+@property(nonatomic,weak)IBOutlet UIView* m_pLoginView;
+@property(nonatomic,weak)IBOutlet UIView* m_pRegistView;
+
+@property(nonatomic,weak)IBOutlet UIView* m_pFinishView;
+@property(nonatomic,weak)IBOutlet UILabel* m_pFinishMsg;
+
+@property(nonatomic,weak)IBOutlet UITextField* m_pAccount;
+@property(nonatomic,weak)IBOutlet UITextField* m_pName;
+@property(nonatomic,weak)IBOutlet UITextField* m_pPW;
+@property(nonatomic,weak)IBOutlet UITextField* m_pPW2;
+
+
+@property(nonatomic, weak)IBOutlet UIScrollView*m_pScrollL;
+@property(nonatomic, weak)IBOutlet UIView* m_pContonL;
+
+@property(nonatomic, weak)IBOutlet UITableView*m_pTvL;
+@property(nonatomic, weak)IBOutlet UIView* m_pContonR;
+
+@property(nonatomic,weak)IBOutlet UITextField* m_pLoginID;
+@property(nonatomic,weak)IBOutlet UITextField* m_pLoginPW;
+@property(nonatomic, weak)IBOutlet UIButton* m_pLoginRememberPW;
+
+@property(nonatomic, weak) id<LoginFinishDelegate> loginFinishDelegate;
+
+-(IBAction)onTapRemember:(id)sender;
+-(IBAction)onTapOK:(id)sender;
+-(IBAction)onTapSwitch:(id)sender;
+
+-(IBAction)onBack:(id)sender;
+
+@end

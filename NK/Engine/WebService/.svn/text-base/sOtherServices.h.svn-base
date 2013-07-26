@@ -1,0 +1,158 @@
+//
+//  sShoppingHoting.h
+//  NK
+//
+//  Created by ZhouBin Mac Book Air on 12-7-29.
+//  Copyright (c) 2012年 __MyCompanyName__. All rights reserved.
+//
+
+#import "ServiceBase.h"
+#import "sStore.h"
+
+@interface sMyStoreF: sStore//我关注的商户
+@end
+
+@interface sMyShoppingHotingC : sStore//我收藏的消费热点
+@end
+
+@interface sMyShoppingHotingF: sStore//我关注的消费热点
+@end
+
+@interface sMyVouchersC : sStore//我收藏的优惠券
+@end
+
+@interface sShoppingHoting : sStore
+@end
+
+@interface sVouchers : sStore
+@end
+
+
+@interface sAccountCheck: ServiceBase
++(int)isOnlyWithAccount:(NSString*)sAccount;
+@end
+
+@interface sNickNameCheck: ServiceBase
++(int)isOnlyWithNickName:(NSString*)sNickName;
+@end
+
+@interface sVouchersHomeHot : sStore
+@end
+
+@interface sUserRegiste: ServiceBase
+-(int)registeWithAccount:(NSString*)sAccount Nickname:(NSString*)sNickname
+                    Pwd1:(NSString*)sPwd1 Pwd2:(NSString*)sPwd2;
+@end
+
+@interface sUserUpdatePw: ServiceBase
+-(int)updatePwWithUserID:(int)nUserID PwdOld:(NSString*)sPwdOld
+                    Pwd1:(NSString*)sPwd1 Pwd2:(NSString*)sPwd2;
+@end
+
+#define UserInfoKey_Account @"account"
+
+@interface sUserLogin: ServiceBase
++(id)getCurLoginUser;
++(void)mustToLogin;
++(void)dontRememberPW;
++(id)loginWithLastUserInfoFile:(int*)pGetError;
++(id)loginWithAccount:(NSString*)sAccount Pwd1:(NSString*)sPwd1  RememberPW:(BOOL)bRememberPW ErrorID:(int*)pGetError;
++(void)logout:(BOOL)bShowReslut;
+
++(NSString*)getLastUserInfoFilePath;
++(BOOL)haveLastUserInfo;
++(void)deleteLastUserInfo;
+-(NSString*)getNickname;
+-(id)initWithLasetUserInfoFile;
+-(NSString*)getPwd;
+
+-(void)rememberPhone:(NSString*)sPhone;
+-(NSString*)getRememberPhone;
+@end
+
+@interface sUserProfile: ServiceBase
++(NSString*)getNickname:(int)nUserID;
+@end
+
+@interface sOrder : ServiceBase
++(id)orderByStoreID:(int)nStoreID UserID:(int)nUserID HowMoney:(NSString*)sMoney;
+-(int)getOrderID;
+@end
+
+@interface sGetMbl : ServiceBase
++(NSString*)getPhone:(int)nUserID;
+@end
+
+@interface sBuyYhq : ServiceBase
++(id)buyWithUserID:(int)nUserID YhqID:(int)nYhqID BuyNums:(int)nBuyNums;
+@end
+
+@interface sUPPayData : ServiceBase
++(NSString*)uppayDataByOrderID:(int)nOrderID UserID:(int)nUserID;
+@end
+
+@interface sVerifyMblCheck : ServiceBase
++(id)verifyMblCheckWithUserID:(int)nUserID;
+@end
+
+@interface sSendMblMsg : ServiceBase
++(int)getCodeWithUserID:(int)nUserID PhoneNumber:(NSString*)pPhoneNumber;
+@end
+
+@interface sVerifyMbl: ServiceBase
++(int)verifyPhoneWithUserID:(int)nUserID VerifyCode:(NSString*)pCode;
+@end
+
+@interface sTradeData : sStore
+
+@end
+
+@interface sVoucherIsAvailable:ServiceBase
++(BOOL)isAvailableWithVocherID:(int)nVoucherID IsAvailable:(BOOL)bIsAvailable;
+@end
+
+@interface sVoucherIsCollect:ServiceBase//收藏
++(BOOL)isCollectWithVocherID:(int)nVoucherID  UserID:(int)nUserID;
+@end
+
+@interface sStoreIsFollow:ServiceBase
++(BOOL)isFollowWithStoreID:(int)nStoreID  UserID:(int)nUserID;
+@end
+
+@interface sVoucherCollect:ServiceBase
++(BOOL)collectWithVocherID:(int)nVoucherID  UserID:(int)nUserID;
+@end
+
+@interface sVoucherDetail: ServiceBase
++(id)detailWithVocherID:(int)nVoucherID;
+@end
+
+@interface sTradeDetail : ServiceBase
+@end
+
+@interface sTradeCancel : ServiceBase
+@end
+
+@interface sUseVoucher: ServiceBase
++(BOOL)UseWithVocherID:(int)nVoucherID;
+@end
+
+@interface sHottingDetail : ServiceBase
++(id)detailWithHottingID:(int)nHottingID;
+@end
+
+@interface sHottingLike : ServiceBase
++(BOOL)likeWithHottingID:(int)nHottingID;
+@end
+
+@interface sHottingCollect : ServiceBase
++(BOOL)collectWithHottingID:(int)nHottingID UserID:(int)nUserID;
+@end
+
+@interface sStoreCollect : ServiceBase
++(BOOL)collectWithStoreID:(int)nStroeID UserID:(int)nUserID;
+@end
+
+@interface sStoreLike : ServiceBase
++(BOOL)likeWithStroeID:(int)nStoreID;
+@end

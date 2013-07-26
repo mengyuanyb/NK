@@ -1,0 +1,279 @@
+//
+//  TelCheckCtrl.m
+//  NK
+//
+//  Created by Arthur on 12-8-17.
+//
+//
+
+#import "TelCheckCtrl.h"
+#import "sOtherServices.h"
+
+@interface TelCheckCtrl ()
+@property(retain)IBOutlet UITableView* m_pTvL;
+@property(retain)IBOutlet UIView*      m_pContonR;
+@property(assign)BOOL   m_bCanSkip;
+
+@property(retain)IBOutlet UITextField* m_pTel1;
+@property(retain)IBOutlet UITextField* m_pTel2;
+@property(retain)IBOutlet UITextField* m_pCheckCode;
+@property(retain)IBOutlet UIButton*    m_pBtnGetCode;
+@property(retain)IBOutlet UIButton*    m_pBtnReGetCode;
+@property(retain)IBOutlet UIButton*    m_pBtnCheck;
+@property(retain)IBOutlet UIButton*    m_pBtnSkip;
+
+@property(retain)NSTimer* m_pReGetTimer;
+
+-(IBAction)onBack:(id)sender;
+-(IBAction)onSkip:(id)sender;
+-(IBAction)onTapGetCode:(id)sender;
+-(IBAction)onTapCheck:(id)sender;
+
+@end
+
+@implementation TelCheckCtrl
+@synthesize m_pReGetTimer;
+@synthesize m_bCanSkip;
+@synthesize m_pTvL;
+@synthesize m_pContonR;
+@synthesize m_pBtnSkip;
+@synthesize m_pTel1;
+@synthesize m_pTel2;
+@synthesize m_pCheckCode;
+
+@synthesize m_pBtnGetCode;
+@synthesize m_pBtnReGetCode;
+@synthesize m_pBtnCheck;
+
++(id)checkWithCanSkip:(BOOL)bCanSkip
+{
+    TelCheckCtrl* pCheckCtrl    =[[TelCheckCtrl alloc]initWithNibName:@"TelCheckCtrl" bundle:nil];
+    if(pCheckCtrl)
+    {
+        pCheckCtrl.m_bCanSkip   =bCanSkip;
+    }
+    return pCheckCtrl;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWasShown:) name:UIKeyboardDidShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWasHidden:) name:UIKeyboardDidHideNotification object:nil];
+    
+    //[self setWeatherNaBackButton:YES];
+    //[self setNaTitleViewText:@"手机认证"];
+    
+    sUserLogin* pCurUser    =[sUserLogin getCurLoginUser];
+    if(!pCurUser)
+        return;
+    NSString* sAccount   =[pCurUser getParamStr:@"account"];
+    if(CheckTextIsPhoneNumber(sAccount))
+    {
+        m_pTel1.text    =sAccount;
+        [m_pTel2 becomeFirstResponder];
+    }
+    else
+        [m_pTel1 becomeFirstResponder];
+    
+    m_pBtnSkip.hidden   =!m_bCanSkip;
+}
+
+-(void)viewDidUnload
+{
+    if(m_pReGetTimer)
+    {
+        [m_pReGetTimer invalidate];
+        m_pReGetTimer   =nil;
+    }
+    
+    [super viewDidUnload];
+}
+- (void)keyboardWasHidden:(NSNotification*)aNotification
+{
+    [self moveTextViewForKeyboard:aNotification up:NO];
+}
+
+
+// Called when the UIKeyboardDidShowNotification is sent.
+- (void)keyboardWasShown:(NSNotification*)aNotification
+{
+    [self moveTextViewForKeyboard:aNotification up:YES];
+}
+
+- (void) moveTextViewForKeyboard:(NSNotification*)aNotification up: (BOOL) up
+{
+    NSDictionary* userInfo = [aNotification userInfo];
+    
+    // Get animation info from userInfo
+    CGRect keyboardEndFrame;
+    [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardEndFrame];
+    
+    
+    CGRect newFrame =m_pTvL.superview.bounds;
+    CGRect keyboardFrame = [self.view convertRect:keyboardEndFrame toView:nil];
+    if(up)
+        newFrame.size.height -= keyboardFrame.size.height;
+    else
+        ;
+    m_pTvL.frame = newFrame;
+    [m_pTvL flashScrollIndicators];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 250;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell* cell   =[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"sss"];
+    {
+        [m_pContonR removeFromSuperview];
+        [cell.contentView addSubview:m_pContonR];
+        m_pContonR.frame    =CGRectSetY(m_pContonR.frame, 0);
+    }
+    cell.clipsToBounds  =true;
+    cell.selectionStyle =UITableViewCellSelectionStyleNone;
+    
+    return cell;
+}
+
+-(IBAction)onBack:(id)sender
+{
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [[NSNotificationCenter defaultCenter]postNotificationName:@"popViewCtrl" object:nil];
+//    });
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(IBAction)onTapGetCode:(id)sender;
+{
+    sUserLogin* pCurUser    =[sUserLogin getCurLoginUser];
+    if(!pCurUser)
+        return;
+
+    NSString* sReslut   =nil;
+    do{
+        if(!CheckTextIsPhoneNumber(m_pTel1.text))
+        {
+            sReslut   =@"手机号填写错误,请更正!"; [m_pTel1 becomeFirstResponder]; break;
+        }
+        if(!CheckTextIsPhoneNumber(m_pTel2.text))
+        {
+            sReslut   =@"确认手机号填写错误,请更正!"; [m_pTel2 becomeFirstResponder]; break;
+        }
+        if([m_pTel2.text compare:m_pTel1.text] !=NSOrderedSame)
+        {
+            sReslut   =@"手机号确认不一致,请更正!"; [m_pTel2 becomeFirstResponder]; break;
+        }
+        
+ 
+        int nUserID   =[pCurUser getParamNum:@"uid"].intValue;
+
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            int nCode  =[sSendMblMsg getCodeWithUserID:nUserID PhoneNumber:m_pTel1.text];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSString* sReslut2 =nil;
+                switch(nCode)
+                {
+                    case 1000:
+                        sReslut2   =@"验证码已发送,请查收!";
+                        m_pTel1.userInteractionEnabled  =false;
+                        m_pTel2.userInteractionEnabled  =false;
+                        [m_pCheckCode becomeFirstResponder];
+                        m_pBtnGetCode.hidden    =true;
+                        m_pBtnReGetCode.hidden  =false;
+                        m_pBtnCheck.hidden      =false;
+                        m_pTvL.contentOffset    =CGPointMake(0, m_pTvL.contentSize.height -CGRectGetHeight(m_pTvL.bounds));
+                        [self lunachReGetTimer];
+                        break;
+                    case 2005:
+                        sReslut2   =@"手机号已使用,请更换!";
+                        [m_pTel1 becomeFirstResponder];
+                        break;
+                    default:
+                        sReslut2   =@"验证码获取失败,请稍后再试!";
+                        [self lunachReGetTimer];
+                        break;
+                }
+                if(sReslut2)
+                    [[NSNotificationCenter defaultCenter]postNotificationName:@"showActionReslut" object:sReslut2];
+                
+            });
+        });
+    }while (false);
+
+    if(sReslut)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSNotificationCenter defaultCenter]postNotificationName:@"showActionReslut" object:sReslut];
+        });
+        return;
+    }
+}
+
+-(void)lunachReGetTimer
+{
+    UIButton* pBtn  =m_pBtnGetCode.hidden?(m_pBtnReGetCode.hidden?nil:m_pBtnReGetCode):m_pBtnGetCode;
+    if(!pBtn)
+        return;
+    pBtn.enabled    =false;
+    
+    static int s_nAllSeconds =60;
+    s_nAllSeconds   =60;
+    self.m_pReGetTimer  =[NSTimer scheduledTimerWithTimeInterval:1 block:^{
+        if(s_nAllSeconds >0)
+        {
+            [pBtn setTitle:[NSString stringWithFormat:@"再次获取验证码(%d')", s_nAllSeconds, nil] forState:UIControlStateNormal];
+        }
+        else
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [pBtn setTitle:[NSString stringWithFormat:@"再次获取验证码", nil] forState:UIControlStateNormal];
+                pBtn.enabled    =true;
+                [m_pReGetTimer invalidate];
+                self.m_pReGetTimer  =nil;
+            });
+        }
+        --s_nAllSeconds;
+    } repeats:true];
+}
+
+-(IBAction)onTapCheck:(id)sender
+{
+    sUserLogin* pCurUser    =[sUserLogin getCurLoginUser];
+    if(!pCurUser)
+        return;
+    
+    int nUserID   =[pCurUser getParamNum:@"uid"].intValue;
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        int nCode  =[sVerifyMbl verifyPhoneWithUserID:nUserID  VerifyCode:m_pCheckCode.text];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(nCode ==1000)
+            {
+                [[sUserLogin getCurLoginUser]rememberPhone:m_pTel1.text];
+                [[NSNotificationCenter defaultCenter]postNotificationName:@"showActionReslut" object:@"验证成功!"];
+                [[NSNotificationCenter defaultCenter]postNotificationName:@"VerifyPhoneFinished" object:nil];
+            }
+            else
+            {
+                [[NSNotificationCenter defaultCenter]postNotificationName:@"showActionReslut" object:@"验证失败!"];
+               
+            }
+        });
+    });
+}
+-(IBAction)onSkip:(id)sender
+{
+    [[NSNotificationCenter defaultCenter]postNotificationName:@"VerifyPhoneCancel" object:nil];
+}
+
+@end

@@ -1,0 +1,13 @@
+//
+//  TelCheckCtrl.h
+//  NK
+//
+//  Created by Arthur on 12-8-17.
+//
+//
+
+#import "UIViewControllerPro.h"
+
+@interface TelCheckCtrl : UIViewControllerPro<UITableViewDataSource, UITableViewDelegate>
++(id)checkWithCanSkip:(BOOL)bCanSkip;
+@end
